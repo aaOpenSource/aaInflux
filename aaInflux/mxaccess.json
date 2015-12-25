@@ -1,0 +1,21 @@
+﻿{
+  "subscribetags": [
+    {
+      "tag": "Sim_001.val[1]", "influxtag": ""
+    },
+    {
+      "tag": "Sim_001.val[2]"
+    },
+    {
+      "tag": "Sim_001.val[3]"
+    },
+    { "tag": "Sim_001.val[4]" },
+    { "tag": "Sim_001.val[5]" },
+    { "tag": "Sim_001.val[6]" },
+    { "tag": "Sim_001.val[7]" },
+    { "tag": "Sim_001.val[8]" },
+    { "tag": "Sim_001.val[9]" },
+    { "tag": "Sim_001.val[10]" }
+
+  ]
+}
