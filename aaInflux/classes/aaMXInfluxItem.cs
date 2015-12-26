@@ -35,17 +35,16 @@ namespace aaInflux
             {
                 localPoint.Name = this.influxTag;
                 localPoint.Fields.Add("value", this.Value);
+                localPoint.Fields.Add("quality", this.Quality);
                 localPoint.Timestamp = this.TimeStamp.ToUniversalTime();
                 localPoint.Precision = InfluxData.Net.Enums.TimeUnit.Milliseconds;
 
                 return localPoint;
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
-            }
-            
-
+                throw;
+            }           
         }
     }
 }
