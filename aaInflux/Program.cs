@@ -39,7 +39,7 @@ namespace aaInflux
         private static InfluxDb _InfluxClient;
 
         //Local stack of points to write in batches
-        private static BlockingCollection<aaMXInfluxItem> _WriteItemCollection;
+        private static BlockingCollection<Point> _WriteItemCollection;
 
         private static BlockingCollection<Point> _StoreForwardPoints;
 
@@ -56,7 +56,7 @@ namespace aaInflux
                 log.Info("Starting " + System.AppDomain.CurrentDomain.FriendlyName);
 
                 _MXAccessTagDictionary = new Dictionary<int, subscription>();
-                _WriteItemCollection = new BlockingCollection<aaMXInfluxItem>();
+                _WriteItemCollection = new BlockingCollection<Point>();
                 _StoreForwardPoints = new BlockingCollection<Point>(new ConcurrentStack<Point>());
 
                 _writeTimer = new Timer(3000);
@@ -82,12 +82,12 @@ namespace aaInflux
             catch (Exception ex)
             {
                 log.Error(ex);
+                Console.ReadKey();
             }
             finally
-            {
+            { 
                 // Always disconnect on shutdown
-                DisconnectMXAccess();
-                Console.ReadKey();         
+                DisconnectMXAccess();                      
             }
 
         }
@@ -118,9 +118,9 @@ namespace aaInflux
                     return true;
                 }                
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }        
         }
 
@@ -226,8 +226,8 @@ namespace aaInflux
                 newItem.influxTag = _MXAccessTagDictionary[phItemHandle].influxtag;
                 newItem.TimeStamp = DateTime.Parse(ts.ToString());
                 newItem.Value = pvItemValue;
-
-                _WriteItemCollection.Add(newItem);
+                
+                _WriteItemCollection.Add(newItem.GetInfluxPoint());
 
             }
             catch (Exception ex)
@@ -256,10 +256,10 @@ namespace aaInflux
             }
             catch
             {
-                log.ErrorFormat("Error attempting to write points.");
-                log.ErrorFormat("Adding {0} points to Store/Forward", points.Length);
+                log.WarnFormat("Error attempting to write points.");
+                log.WarnFormat("Adding {0} points to Store/Forward", points.Length);
                 bool result = _StoreForwardPoints.TryAddArray<Point>(points);
-                log.ErrorFormat("Store/Forward now has {0} points.", _StoreForwardPoints.Count);
+                log.WarnFormat("Store/Forward now has {0} points.", _StoreForwardPoints.Count);
             }
         }
 
@@ -273,12 +273,13 @@ namespace aaInflux
 
             try
             {
-                //First Verify the Server is Awake
-                if (_InfluxClient.IsAwake())
+                //First see if we have any points to send
+                while (_StoreForwardPoints.Count > 0)
                 {
-                    while (_StoreForwardPoints.Count > 0)
+                    //Verify the Server is Awake
+                    if (_InfluxClient.IsAwake())
                     {
-                        
+
                         while ((_StoreForwardPoints.TryTake(out point) && (points.Count < maxPointsPerBatch)))
                         {                            
                             points.Add(point);                            
@@ -295,30 +296,29 @@ namespace aaInflux
                         log.DebugFormat("Sleep {0} milliseconds before next Store/Forward Batch", sleepDelay);
                         System.Threading.Thread.Sleep(sleepDelay);
                     }
-                }
-                else
-                {
-                    log.Warn("InfluxDB Server is not available.  Waiting to retry.");
+                
+                    else
+                    {
+                        log.Warn("InfluxDB Server is not available.  Waiting to retry.");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 log.Error(ex);
             }
-
-
         }
 
         private static void _writeTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             List<Point> points = new List<Point>();
-            aaMXInfluxItem item;
+            Point item;
 
             try
             {
                 while(_WriteItemCollection.TryTake(out item))
                 {                
-                    points.Add(item.GetInfluxPoint());
+                    points.Add(item);
                 }
 
                 if (points.Count > 0)
