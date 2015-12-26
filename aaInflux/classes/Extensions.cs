@@ -27,9 +27,9 @@ namespace aaInflux
                     returnValue = returnValue && collection.TryAdd(item);
                 }
             }
-            catch(Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return returnValue;
@@ -44,9 +44,9 @@ namespace aaInflux
                     collection.Add(item);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
         }
 
