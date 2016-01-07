@@ -22,6 +22,8 @@ It's quite obvious that Paul Dix and the team at InfluxData are really sharp and
 
 First off, in it's current state, this is nothing more than a proof of concept.  I have one major feature implemented in a functional manner, store and forward, but there is a lot of work to turn this into a codeset that might be relied on for a real-world application.
 
+Here's a [YouTube Video](https://www.youtube.com/watch?v=UBwuCsfh-TY&feature=youtu.be) demonstrating the main features of the application, including store/forward.
+
 To configure the application you need to define settings in two files.  
 
 **MXAccess.json**
